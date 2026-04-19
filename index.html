@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SDT — Sada Dua Tolu Photography</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black: #0a0a0a; --white: #f8f6f2; --gray: #9a9a9a;
+      --gray-light: #e0ddd8; --serif: 'Cormorant Garamond', Georgia, serif;
+      --sans: 'Lato', sans-serif; --transition: 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--white); color: var(--black); font-family: var(--sans); font-weight: 300; overflow-x: hidden; cursor: none; }
+
+    .cursor { width:8px;height:8px;background:var(--black);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;transition:transform .15s ease,opacity .3s ease; }
+    .cursor-ring { width:36px;height:36px;border:1px solid var(--black);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9998;transition:transform .4s cubic-bezier(.25,.46,.45,.94),opacity .3s ease,width .3s,height .3s;opacity:.6; }
+    .cursor.expanded { transform:translate(-50%,-50%) scale(4);opacity:.08; }
+    .cursor-ring.expanded { width:8px;height:8px;opacity:0; }
+
+    #loader { position:fixed;inset:0;background:var(--black);z-index:10000;display:flex;align-items:center;justify-content:center;transition:opacity .8s ease,visibility .8s ease; }
+    #loader.hide { opacity:0;visibility:hidden; }
+    .loader-text { font-family:var(--serif);color:var(--white);font-size:clamp(2rem,5vw,4rem);font-weight:300;letter-spacing:.4em;animation:pulse-text 1.5s ease-in-out infinite; }
+    @keyframes pulse-text { 0%,100%{opacity:.3}50%{opacity:1} }
+    @keyframes fadeUp { to{opacity:1;transform:translateY(0)} }
+
+    nav { position:fixed;top:0;left:0;right:0;z-index:1000;padding:2rem 4rem;display:flex;justify-content:space-between;align-items:center;transition:all .4s ease; }
+    .nav-logo { font-family:var(--serif);font-size:1.5rem;font-weight:300;letter-spacing:.25em;text-decoration:none;color:var(--black);opacity:0;transform:translateY(-10px);animation:fadeUp .8s ease .5s forwards; }
+    .nav-links { display:flex;gap:3rem;list-style:none;opacity:0;transform:translateY(-10px);animation:fadeUp .8s ease .7s forwards; }
+    .nav-links a { font-family:var(--sans);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;text-decoration:none;color:var(--black);position:relative;padding-bottom:2px; }
+    .nav-links a::after { content:'';position:absolute;bottom:0;left:0;width:0;height:1px;background:var(--black);transition:width var(--transition); }
+    .nav-links a:hover::after { width:100%; }
+
+    #hero { height:100vh;display:flex;align-items:flex-end;padding:6rem 4rem;position:relative;overflow:hidden; }
+    .hero-bg { position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=80') center/cover no-repeat;filter:grayscale(100%);transform:scale(1.05);animation:slowZoom 20s ease-in-out infinite alternate; }
+    @keyframes slowZoom { to{transform:scale(1.15)} }
+    .hero-overlay { position:absolute;inset:0;background:linear-gradient(to top,rgba(10,10,10,.75) 0%,rgba(10,10,10,.1) 60%); }
+    .hero-content { position:relative;z-index:1;color:var(--white); }
+    .hero-tag { font-size:.65rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gray-light);margin-bottom:1.5rem;opacity:0;animation:fadeUp .8s ease 1s forwards; }
+    .hero-title { font-family:var(--serif);font-size:clamp(3.5rem,9vw,9rem);font-weight:300;line-height:.9;letter-spacing:-.02em;margin-bottom:2rem;opacity:0;animation:fadeUp .8s ease 1.2s forwards; }
+    .hero-title em { font-style:italic;font-weight:300; }
+    .hero-sub { font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gray-light);opacity:0;animation:fadeUp .8s ease 1.4s forwards; }
+    .scroll-indicator { position:absolute;bottom:3rem;right:4rem;display:flex;flex-direction:column;align-items:center;gap:.5rem;color:var(--white);opacity:0;animation:fadeUp .8s ease 1.8s forwards; }
+    .scroll-indicator span { font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;writing-mode:vertical-rl; }
+    .scroll-line { width:1px;height:60px;background:var(--white);transform-origin:top;animation:scrollLine 1.5s ease-in-out 2.5s infinite; }
+    @keyframes scrollLine { 0%{transform:scaleY(0);opacity:0}50%{transform:scaleY(1);opacity:1}100%{transform:scaleY(0) translateY(60px);opacity:0} }
+
+    section { padding:8rem 4rem; }
+    .section-label { font-size:.65rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gray);margin-bottom:1rem; }
+
+    #about { display:grid;grid-template-columns:1fr 1fr;gap:8rem;align-items:center; }
+    .about-image-wrap { position:relative;aspect-ratio:3/4;overflow:hidden; }
+    .about-image-wrap img { width:100%;height:100%;object-fit:cover;filter:grayscale(100%);transition:transform .8s ease; }
+    .about-image-wrap:hover img { transform:scale(1.04); }
+    .about-image-line { position:absolute;bottom:-2rem;right:-2rem;width:120px;height:120px;border-right:1px solid var(--black);border-bottom:1px solid var(--black); }
+    .about-text h2 { font-family:var(--serif);font-size:clamp(2.5rem,4vw,4rem);font-weight:300;line-height:1.1;margin-bottom:2.5rem; }
+    .about-text h2 em { font-style:italic; }
+    .about-text p { font-size:.9rem;line-height:1.9;color:#555;margin-bottom:1.5rem; }
+    .about-stats { display:flex;gap:3rem;margin-top:3rem;padding-top:3rem;border-top:1px solid var(--gray-light); }
+    .stat-num { font-family:var(--serif);font-size:2.5rem;font-weight:300;display:block; }
+    .stat-label { font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gray); }
+
+    #work { padding:8rem 4rem 2rem; }
+    .gallery-header { display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4rem; }
+    .gallery-title { font-family:var(--serif);font-size:clamp(2.5rem,5vw,5rem);font-weight:300;line-height:1; }
+    .gallery-title em { font-style:italic; }
+    .filter-btns { display:flex;gap:1.5rem;flex-wrap:wrap; }
+    .filter-btn { font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;background:none;border:none;cursor:none;color:var(--gray);padding:.4rem 0;border-bottom:1px solid transparent;transition:all .3s ease;font-family:var(--sans); }
+    .filter-btn:hover,.filter-btn.active { color:var(--black);border-bottom-color:var(--black); }
+
+    .photo-grid { columns:3;column-gap:1.5rem; }
+    .photo-item { break-inside:avoid;margin-bottom:1.5rem;position:relative;overflow:hidden;display:block; }
+    .photo-item img { width:100%;display:block;filter:grayscale(100%);transition:transform .7s ease,filter .5s ease; }
+    .photo-item:hover img { transform:scale(1.04);filter:grayscale(80%); }
+    .photo-overlay { position:absolute;inset:0;background:rgba(10,10,10,0);transition:background .5s ease;display:flex;align-items:flex-end;padding:1.5rem; }
+    .photo-item:hover .photo-overlay { background:rgba(10,10,10,.5); }
+    .photo-info { color:var(--white);opacity:0;transform:translateY(8px);transition:all .4s ease .1s; }
+    .photo-item:hover .photo-info { opacity:1;transform:translateY(0); }
+    .photo-cat { font-size:.6rem;letter-spacing:.3em;text-transform:uppercase; }
+    .photo-name { font-family:var(--serif);font-size:1.2rem;font-weight:300;font-style:italic; }
+
+    .gallery-loading { text-align:center;padding:4rem;font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--gray); }
+    .gallery-empty { text-align:center;padding:4rem; }
+    .gallery-empty p { font-family:var(--serif);font-size:1.5rem;font-style:italic;color:var(--gray);margin-bottom:1rem; }
+    .gallery-empty small { font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gray-light); }
+
+    #disciplines { background:var(--black);color:var(--white);padding:8rem 4rem; }
+    .disciplines-head { display:grid;grid-template-columns:1fr 1fr;gap:4rem;margin-bottom:6rem; }
+    .disciplines-title { font-family:var(--serif);font-size:clamp(2rem,4vw,4rem);font-weight:300;line-height:1.1; }
+    .disciplines-title em { font-style:italic; }
+    .disciplines-desc { font-size:.9rem;line-height:1.9;color:var(--gray);align-self:flex-end; }
+    .disciplines-list { list-style:none;border-top:1px solid #2a2a2a; }
+    .discipline-item { border-bottom:1px solid #2a2a2a;display:flex;justify-content:space-between;align-items:center;padding:2rem 0;cursor:none;transition:padding .4s ease;position:relative;overflow:hidden; }
+    .discipline-item::before { content:'';position:absolute;inset:0;background:#1a1a1a;transform:translateX(-100%);transition:transform .5s cubic-bezier(.25,.46,.45,.94); }
+    .discipline-item:hover::before { transform:translateX(0); }
+    .discipline-item:hover { padding-left:1rem; }
+    .disc-name { font-family:var(--serif);font-size:clamp(1.5rem,3vw,2.5rem);font-weight:300;position:relative;z-index:1; }
+    .disc-num { font-size:.65rem;letter-spacing:.2em;color:var(--gray);position:relative;z-index:1; }
+    .disc-arrow { color:var(--gray);font-size:1.2rem;position:relative;z-index:1;transition:transform .3s ease,color .3s ease; }
+    .discipline-item:hover .disc-arrow { transform:translate(4px,-4px);color:var(--white); }
+
+    /* Contact Form */
+    #contact { padding:10rem 4rem; }
+    .contact-inner { max-width:700px;margin:0 auto;text-align:center; }
+    .contact-pre { font-size:.65rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gray);margin-bottom:2rem; }
+    .contact-title { font-family:var(--serif);font-size:clamp(3rem,8vw,7rem);font-weight:300;line-height:1;margin-bottom:1rem; }
+    .contact-title em { font-style:italic; }
+    .contact-subtitle { font-size:.9rem;line-height:1.9;color:#555;margin-bottom:4rem; }
+    .contact-form { text-align:left; }
+    .form-group { margin-bottom:2rem; }
+    .form-label { display:block;font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gray);margin-bottom:.8rem; }
+    .form-input, .form-textarea {
+      width:100%;background:none;border:none;border-bottom:1px solid var(--gray-light);
+      padding:.8rem 0;font-family:var(--sans);font-size:.95rem;font-weight:300;color:var(--black);
+      outline:none;transition:border-color .3s ease;resize:none;
+    }
+    .form-input:focus, .form-textarea:focus { border-bottom-color:var(--black); }
+    .form-textarea { min-height:120px; }
+    .form-row { display:grid;grid-template-columns:1fr 1fr;gap:2rem; }
+    .submit-btn {
+      margin-top:3rem;padding:1.2rem 3rem;background:var(--black);color:var(--white);
+      border:none;font-family:var(--sans);font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;
+      cursor:none;transition:opacity .3s ease;width:100%;
+    }
+    .submit-btn:hover { opacity:.75; }
+    .submit-btn:disabled { opacity:.4; }
+    .form-success { text-align:center;padding:3rem;display:none; }
+    .form-success h3 { font-family:var(--serif);font-size:2rem;font-style:italic;font-weight:300;margin-bottom:1rem; }
+    .form-success p { font-size:.85rem;color:var(--gray); }
+    .form-error { color:#c0392b;font-size:.75rem;margin-top:2rem;text-align:center;display:none; }
+
+    .contact-socials { display:flex;justify-content:center;gap:3rem;margin-top:5rem;padding-top:4rem;border-top:1px solid var(--gray-light); }
+    .contact-socials a { font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;text-decoration:none;color:var(--gray);transition:color .3s ease; }
+    .contact-socials a:hover { color:var(--black); }
+
+    footer { border-top:1px solid var(--gray-light);padding:2.5rem 4rem;display:flex;justify-content:space-between;align-items:center;font-size:.65rem;letter-spacing:.15em;color:var(--gray); }
+
+    .reveal { opacity:0;transform:translateY(30px);transition:opacity .9s ease,transform .9s ease; }
+    .reveal.visible { opacity:1;transform:translateY(0); }
+
+    @media(max-width:900px){
+      nav{padding:1.5rem 2rem}.nav-links{gap:1.5rem}
+      section{padding:5rem 2rem}#hero{padding:4rem 2rem}
+      #about{grid-template-columns:1fr;gap:4rem}.about-image-line{display:none}
+      .photo-grid{columns:2}.disciplines-head{grid-template-columns:1fr;gap:2rem}
+      .form-row{grid-template-columns:1fr}
+      footer{padding:2rem;flex-direction:column;gap:1rem;text-align:center}
+    }
+    @media(max-width:600px){
+      .gallery-header{flex-direction:column;align-items:flex-start;gap:2rem}
+      .photo-grid{columns:1}.hero-title{font-size:clamp(2.5rem,12vw,5rem)}
+      #contact{padding:6rem 2rem}
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loader"><span class="loader-text">SDT</span></div>
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <nav>
+    <a href="#hero" class="nav-logo">SDT</a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#work">Work</a></li>
+      <li><a href="#disciplines">Disciplines</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <section id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <p class="hero-tag">Sada Dua Tolu — Photography</p>
+      <h1 class="hero-title">Finding<br><em>light in</em><br>stillness</h1>
+      <p class="hero-sub">Portrait · Landscape · Nature · People · Life in Between</p>
+    </div>
+    <div class="scroll-indicator">
+      <div class="scroll-line"></div>
+      <span>Scroll</span>
+    </div>
+  </section>
+
+  <section id="about">
+    <div class="about-image-wrap reveal">
+      <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80" alt="SDT Photography" loading="lazy" />
+      <div class="about-image-line"></div>
+    </div>
+    <div class="about-text reveal">
+      <p class="section-label">About SDT</p>
+      <h2>A story<br>told through<br><em>silence &amp; light</em></h2>
+      <p>Sada Dua Tolu adalah visi fotografis yang lahir dari keheningan alam dan dinamika kehidupan sehari-hari. Setiap gambar adalah percakapan antara cahaya, bayangan, dan momen yang tak tergantikan.</p>
+      <p>Dari puncak pegunungan yang sunyi hingga wajah-wajah manusia yang penuh cerita, kami merekam dunia dalam nuansa hitam dan putih yang jujur dan mendalam.</p>
+      <div class="about-stats">
+        <div><span class="stat-num">5+</span><span class="stat-label">Years of Work</span></div>
+        <div><span class="stat-num">300+</span><span class="stat-label">Sessions</span></div>
+        <div><span class="stat-num">12+</span><span class="stat-label">Exhibitions</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="work">
+    <div class="gallery-header reveal">
+      <h2 class="gallery-title">Selected<br><em>Works</em></h2>
+      <div class="filter-btns">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="portrait">Portrait</button>
+        <button class="filter-btn" data-filter="landscape">Landscape</button>
+        <button class="filter-btn" data-filter="nature">Nature</button>
+        <button class="filter-btn" data-filter="people">People</button>
+        <button class="filter-btn" data-filter="life">Life in Between</button>
+      </div>
+    </div>
+    <div class="photo-grid" id="photoGrid">
+      <div class="gallery-loading">Memuat foto...</div>
+    </div>
+  </section>
+
+  <section id="disciplines">
+    <div class="disciplines-head">
+      <h2 class="disciplines-title reveal">What I<br><em>capture</em></h2>
+      <p class="disciplines-desc reveal">Setiap bidang fotografi adalah bahasa tersendiri. Saya mengkhususkan diri pada lima disiplin yang saling melengkapi — masing-masing membawa kedalaman dan kejujuran visual yang unik.</p>
+    </div>
+    <ul class="disciplines-list">
+      <li class="discipline-item reveal"><span class="disc-num">01</span><span class="disc-name">Portrait</span><span class="disc-arrow">↗</span></li>
+      <li class="discipline-item reveal"><span class="disc-num">02</span><span class="disc-name">Landscape</span><span class="disc-arrow">↗</span></li>
+      <li class="discipline-item reveal"><span class="disc-num">03</span><span class="disc-name">Nature</span><span class="disc-arrow">↗</span></li>
+      <li class="discipline-item reveal"><span class="disc-num">04</span><span class="disc-name">People</span><span class="disc-arrow">↗</span></li>
+      <li class="discipline-item reveal"><span class="disc-num">05</span><span class="disc-name">Life in Between</span><span class="disc-arrow">↗</span></li>
+    </ul>
+  </section>
+
+  <section id="contact">
+    <div class="contact-inner">
+      <p class="contact-pre reveal">Let's work together</p>
+      <h2 class="contact-title reveal">Let's<br><em>connect</em></h2>
+      <p class="contact-subtitle reveal">Punya proyek atau cerita yang ingin diabadikan? Kirim pesan dan mari kita mulai.</p>
+
+      <div class="contact-form reveal">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nama</label>
+            <input type="text" class="form-input" id="f-name" placeholder="Nama Anda" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="f-email" placeholder="email@anda.com" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subjek</label>
+          <input type="text" class="form-input" id="f-subject" placeholder="Tentang apa?" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pesan</label>
+          <textarea class="form-textarea" id="f-message" placeholder="Ceritakan lebih lanjut..."></textarea>
+        </div>
+        <p class="form-error" id="formError">Terjadi kesalahan. Silakan coba lagi.</p>
+        <button class="submit-btn" id="submitBtn" onclick="submitContact()">Kirim Pesan</button>
+      </div>
+
+      <div class="form-success" id="formSuccess">
+        <h3>Pesan terkirim!</h3>
+        <p>Terima kasih telah menghubungi SDT Photography. Kami akan segera membalas pesan Anda.</p>
+      </div>
+
+      <div class="contact-socials reveal">
+        <a href="#">Instagram</a>
+        <a href="#">Behance</a>
+        <a href="#">VSCO</a>
+        <a href="#">LinkedIn</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2025 Sada Dua Tolu Photography</span>
+    <span>SDT</span>
+    <span>All rights reserved</span>
+  </footer>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // =============================================
+    // GANTI DENGAN FIREBASE CONFIG ANDA
+    // (lihat PANDUAN-FIREBASE.md untuk caranya)
+    // =============================================
+   const firebaseConfig = {
+  apiKey: "AIzaSyD39ZxF4lmTpdlP6OaO8M5CwABWXZlmEbM",
+  authDomain: "sdt-photography.firebaseapp.com",
+  projectId: "sdt-photography",
+  storageBucket: "sdt-photography.firebasestorage.app",
+  messagingSenderId: "1005560346457",
+  appId: "1:1005560346457:web:bc6f6af960aa323f8b3e48",
+  measurementId: "G-NYM41SGCW0"
+};
+    // =============================================
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ── Load Gallery from Firestore ──
+    async function loadGallery() {
+      const grid = document.getElementById('photoGrid');
+      try {
+        const q = query(collection(db, 'photos'), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+          grid.innerHTML = `<div class="gallery-empty"><p>Belum ada foto.</p><small>Upload via halaman admin</small></div>`;
+          return;
+        }
+        grid.innerHTML = '';
+        snap.forEach(doc => {
+          const d = doc.data();
+          const item = document.createElement('div');
+          item.className = 'photo-item';
+          item.dataset.cat = d.category;
+          item.innerHTML = `
+            <img src="${d.imageUrl}" alt="${d.title}" loading="lazy" />
+            <div class="photo-overlay">
+              <div class="photo-info">
+                <p class="photo-cat">${d.category}</p>
+                <p class="photo-name">${d.title}</p>
+              </div>
+            </div>`;
+          grid.appendChild(item);
+        });
+        reattachCursorHover();
+      } catch (e) {
+        console.error(e);
+        grid.innerHTML = `<div class="gallery-empty"><p>Gagal memuat foto.</p><small>Periksa konfigurasi Firebase</small></div>`;
+      }
+    }
+
+    // ── Contact Form Submit ──
+    window.submitContact = async function() {
+      const name    = document.getElementById('f-name').value.trim();
+      const email   = document.getElementById('f-email').value.trim();
+      const subject = document.getElementById('f-subject').value.trim();
+      const message = document.getElementById('f-message').value.trim();
+      const btn     = document.getElementById('submitBtn');
+      const errEl   = document.getElementById('formError');
+
+      if (!name || !email || !message) {
+        errEl.textContent = 'Nama, email, dan pesan wajib diisi.';
+        errEl.style.display = 'block'; return;
+      }
+      errEl.style.display = 'none';
+      btn.disabled = true; btn.textContent = 'Mengirim...';
+
+      try {
+        await addDoc(collection(db, 'messages'), {
+          name, email, subject, message, createdAt: serverTimestamp(), read: false
+        });
+        document.querySelector('.contact-form').style.display = 'none';
+        document.getElementById('formSuccess').style.display = 'block';
+      } catch (e) {
+        console.error(e);
+        errEl.textContent = 'Gagal mengirim. Coba lagi.';
+        errEl.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Kirim Pesan';
+      }
+    };
+
+    // ── Filter Gallery ──
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filter = btn.dataset.filter;
+        document.querySelectorAll('.photo-item').forEach(item => {
+          item.style.display = (filter === 'all' || item.dataset.cat === filter) ? 'block' : 'none';
+        });
+      });
+    });
+
+    loadGallery();
+  </script>
+
+  <script>
+    // Loader
+    window.addEventListener('load', () => {
+      setTimeout(() => document.getElementById('loader').classList.add('hide'), 1200);
+    });
+
+    // Custom cursor
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx=0, my=0, rx=0, ry=0;
+    document.addEventListener('mousemove', e => {
+      mx=e.clientX; my=e.clientY;
+      cursor.style.transform = `translate(${mx-4}px,${my-4}px)`;
+    });
+    function animateRing() {
+      rx += (mx-rx)*.12; ry += (my-ry)*.12;
+      ring.style.transform = `translate(${rx-18}px,${ry-18}px)`;
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    function reattachCursorHover() {
+      document.querySelectorAll('a,button,.photo-item,.discipline-item').forEach(el => {
+        el.addEventListener('mouseenter', () => { cursor.classList.add('expanded'); ring.classList.add('expanded'); });
+        el.addEventListener('mouseleave', () => { cursor.classList.remove('expanded'); ring.classList.remove('expanded'); });
+      });
+    }
+    reattachCursorHover();
+
+    // Reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i*80);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold:.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Sticky nav
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 80) {
+        nav.style.cssText = 'backdrop-filter:blur(12px);background:rgba(248,246,242,.85);border-bottom:1px solid rgba(0,0,0,.06);padding:1.2rem 4rem;';
+      } else {
+        nav.style.cssText = 'padding:2rem 4rem;';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SDT Admin — Photography CMS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Lato:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--black:#0a0a0a;--white:#f8f6f2;--gray:#9a9a9a;--gray-light:#e0ddd8;--serif:'Cormorant Garamond',serif;--sans:'Lato',sans-serif;--accent:#0a0a0a;--red:#c0392b;--green:#27ae60}
+    body{background:#f0ede8;font-family:var(--sans);font-weight:300;min-height:100vh;color:var(--black)}
+
+    /* Login */
+    #loginScreen{position:fixed;inset:0;background:#0a0a0a;display:flex;align-items:center;justify-content:center;z-index:1000}
+    #loginScreen.hide{display:none}
+    .login-box{width:100%;max-width:380px;padding:3rem;background:#111;border:1px solid #222}
+    .login-logo{font-family:var(--serif);font-size:2.5rem;font-weight:300;letter-spacing:.3em;color:var(--white);text-align:center;margin-bottom:.5rem}
+    .login-sub{font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gray);text-align:center;margin-bottom:3rem}
+    .login-label{display:block;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);margin-bottom:.6rem}
+    .login-input{width:100%;background:none;border:none;border-bottom:1px solid #333;padding:.8rem 0;color:var(--white);font-family:var(--sans);font-size:.9rem;outline:none;margin-bottom:1.8rem;transition:border-color .3s}
+    .login-input:focus{border-bottom-color:var(--white)}
+    .login-btn{width:100%;padding:1rem;background:var(--white);color:var(--black);border:none;font-family:var(--sans);font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;cursor:pointer;transition:opacity .3s;margin-top:.5rem}
+    .login-btn:hover{opacity:.8}
+    .login-error{color:#e74c3c;font-size:.75rem;text-align:center;margin-top:1rem;display:none}
+
+    /* App Shell */
+    #app{display:none}
+    #app.show{display:flex;min-height:100vh}
+
+    /* Sidebar */
+    .sidebar{width:240px;background:var(--black);padding:2.5rem 0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;flex-shrink:0}
+    .sidebar-logo{font-family:var(--serif);font-size:1.8rem;font-weight:300;letter-spacing:.3em;color:var(--white);padding:0 2rem 2.5rem;border-bottom:1px solid #1e1e1e}
+    .sidebar-nav{flex:1;padding:2rem 0}
+    .nav-item{display:flex;align-items:center;gap:.8rem;padding:1rem 2rem;color:var(--gray);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .3s;border-left:2px solid transparent}
+    .nav-item:hover{color:var(--white)}
+    .nav-item.active{color:var(--white);border-left-color:var(--white);background:rgba(255,255,255,.04)}
+    .nav-icon{width:14px;height:14px;opacity:.7}
+    .sidebar-footer{padding:2rem;border-top:1px solid #1e1e1e}
+    .logout-btn{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);background:none;border:none;cursor:pointer;transition:color .3s}
+    .logout-btn:hover{color:var(--white)}
+
+    /* Main */
+    .main{flex:1;overflow-y:auto}
+    .page{display:none;padding:3rem;min-height:100vh}
+    .page.active{display:block}
+    .page-title{font-family:var(--serif);font-size:2.5rem;font-weight:300;margin-bottom:.5rem}
+    .page-title em{font-style:italic}
+    .page-sub{font-size:.75rem;letter-spacing:.15em;color:var(--gray);margin-bottom:3rem}
+
+    /* Cards */
+    .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-bottom:3rem}
+    .stat-card{background:var(--white);padding:2rem;border:1px solid var(--gray-light)}
+    .stat-card-num{font-family:var(--serif);font-size:3rem;font-weight:300;display:block;margin-bottom:.3rem}
+    .stat-card-label{font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gray)}
+
+    /* Upload Photo */
+    .card{background:var(--white);padding:2.5rem;border:1px solid var(--gray-light);margin-bottom:2rem}
+    .card-title{font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid var(--gray-light)}
+    .form-group{margin-bottom:1.5rem}
+    .form-label{display:block;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);margin-bottom:.6rem}
+    .form-input,.form-select,.form-textarea{width:100%;padding:.8rem 1rem;border:1px solid var(--gray-light);background:var(--white);font-family:var(--sans);font-size:.9rem;font-weight:300;color:var(--black);outline:none;transition:border-color .3s;appearance:none}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--black)}
+    .form-textarea{min-height:80px;resize:vertical}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+
+    /* Drop Zone */
+    .drop-zone{border:2px dashed var(--gray-light);padding:3rem;text-align:center;cursor:pointer;transition:all .3s;background:none;position:relative}
+    .drop-zone:hover,.drop-zone.drag{border-color:var(--black);background:rgba(0,0,0,.02)}
+    .drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+    .drop-icon{font-size:2rem;margin-bottom:1rem;opacity:.3}
+    .drop-text{font-size:.75rem;letter-spacing:.15em;color:var(--gray)}
+    .drop-preview{max-width:200px;max-height:200px;object-fit:cover;margin:1rem auto 0;display:none;filter:grayscale(100%)}
+
+    /* Progress */
+    .progress-bar{height:3px;background:var(--gray-light);margin-top:1rem;display:none}
+    .progress-fill{height:100%;background:var(--black);width:0;transition:width .3s ease}
+
+    .btn{padding:.8rem 2rem;font-family:var(--sans);font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;border:none;cursor:pointer;transition:opacity .3s}
+    .btn-primary{background:var(--black);color:var(--white)}
+    .btn-primary:hover{opacity:.75}
+    .btn-primary:disabled{opacity:.4}
+    .btn-danger{background:var(--red);color:var(--white)}
+    .btn-sm{padding:.5rem 1.2rem;font-size:.6rem}
+
+    /* Photo Table */
+    .photo-table{width:100%;border-collapse:collapse}
+    .photo-table th{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);text-align:left;padding:.8rem 1rem;border-bottom:1px solid var(--gray-light);font-weight:400}
+    .photo-table td{padding:1rem;border-bottom:1px solid var(--gray-light);font-size:.85rem;vertical-align:middle}
+    .photo-thumb{width:60px;height:60px;object-fit:cover;filter:grayscale(100%)}
+    .cat-badge{display:inline-block;padding:.2rem .7rem;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;background:var(--gray-light);color:var(--black)}
+    .table-empty{text-align:center;padding:3rem;color:var(--gray);font-style:italic;font-family:var(--serif);font-size:1.2rem}
+
+    /* Messages */
+    .msg-list{display:flex;flex-direction:column;gap:1rem}
+    .msg-card{background:var(--white);padding:2rem;border:1px solid var(--gray-light);transition:border-color .3s}
+    .msg-card.unread{border-left:3px solid var(--black)}
+    .msg-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem}
+    .msg-sender{font-size:1rem}
+    .msg-sender strong{font-weight:400}
+    .msg-email{font-size:.75rem;color:var(--gray);margin-top:.2rem}
+    .msg-date{font-size:.65rem;color:var(--gray);letter-spacing:.1em}
+    .msg-subject{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:.5rem}
+    .msg-body{font-size:.9rem;line-height:1.7;color:#444}
+    .unread-dot{width:8px;height:8px;background:var(--black);border-radius:50%;flex-shrink:0;margin-top:6px}
+
+    /* Toast */
+    .toast{position:fixed;bottom:2rem;right:2rem;padding:1rem 1.5rem;font-size:.75rem;letter-spacing:.1em;color:var(--white);z-index:9999;opacity:0;transform:translateY(10px);transition:all .4s ease;pointer-events:none}
+    .toast.show{opacity:1;transform:translateY(0)}
+    .toast.success{background:var(--green)}
+    .toast.error{background:var(--red)}
+
+    .loading-msg{text-align:center;padding:3rem;font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--gray)}
+  </style>
+</head>
+<body>
+
+  <!-- Login Screen -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <div class="login-logo">SDT</div>
+      <div class="login-sub">Admin Panel</div>
+      <label class="login-label">Email</label>
+      <input type="email" class="login-input" id="loginEmail" placeholder="admin@email.com" />
+      <label class="login-label">Password</label>
+      <input type="password" class="login-input" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+      <button class="login-btn" onclick="doLogin()">Masuk</button>
+      <p class="login-error" id="loginError">Email atau password salah.</p>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div id="app">
+    <aside class="sidebar">
+      <div class="sidebar-logo">SDT</div>
+      <nav class="sidebar-nav">
+        <div class="nav-item active" onclick="showPage('dashboard')">
+          <span class="nav-icon">◈</span> Dashboard
+        </div>
+        <div class="nav-item" onclick="showPage('upload')">
+          <span class="nav-icon">↑</span> Upload Foto
+        </div>
+        <div class="nav-item" onclick="showPage('photos')">
+          <span class="nav-icon">⊞</span> Kelola Foto
+        </div>
+        <div class="nav-item" onclick="showPage('messages')">
+          <span class="nav-icon">✉</span> Pesan
+          <span id="unreadBadge" style="margin-left:auto;background:#c0392b;color:#fff;font-size:.6rem;padding:.1rem .5rem;border-radius:10px;display:none"></span>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="doLogout()">← Keluar</button>
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <!-- Dashboard -->
+      <div class="page active" id="page-dashboard">
+        <h1 class="page-title">Selamat datang, <em>SDT</em></h1>
+        <p class="page-sub">Ringkasan portofolio Anda</p>
+        <div class="stat-grid">
+          <div class="stat-card"><span class="stat-card-num" id="statPhotos">—</span><span class="stat-card-label">Total Foto</span></div>
+          <div class="stat-card"><span class="stat-card-num" id="statMessages">—</span><span class="stat-card-label">Total Pesan</span></div>
+          <div class="stat-card"><span class="stat-card-num" id="statUnread">—</span><span class="stat-card-label">Belum Dibaca</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Foto Terbaru</div>
+          <table class="photo-table" id="recentTable">
+            <thead><tr><th></th><th>Judul</th><th>Kategori</th><th>Tanggal</th></tr></thead>
+            <tbody><tr><td colspan="4" class="table-empty">Memuat...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Upload -->
+      <div class="page" id="page-upload">
+        <h1 class="page-title">Upload <em>Foto</em></h1>
+        <p class="page-sub">Tambah karya baru ke galeri</p>
+        <div class="card">
+          <div class="card-title">Informasi Foto</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Judul Foto</label>
+              <input type="text" class="form-input" id="photoTitle" placeholder="Contoh: Silent Grace" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Kategori</label>
+              <select class="form-select" id="photoCat">
+                <option value="portrait">Portrait</option>
+                <option value="landscape">Landscape</option>
+                <option value="nature">Nature</option>
+                <option value="people">People</option>
+                <option value="life">Life in Between</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Deskripsi (opsional)</label>
+            <textarea class="form-textarea" id="photoDesc" placeholder="Cerita singkat di balik foto ini..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">File Foto</label>
+            <div class="drop-zone" id="dropZone">
+              <input type="file" accept="image/*" id="fileInput" onchange="previewFile(this)" />
+              <div class="drop-icon">⊕</div>
+              <div class="drop-text">Klik atau drag foto ke sini<br><small>JPG, PNG, WEBP — maks 10MB</small></div>
+              <img class="drop-preview" id="dropPreview" />
+            </div>
+            <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+          </div>
+          <button class="btn btn-primary" id="uploadBtn" onclick="uploadPhoto()">Upload Foto ke Galeri</button>
+        </div>
+      </div>
+
+      <!-- Photos -->
+      <div class="page" id="page-photos">
+        <h1 class="page-title">Kelola <em>Foto</em></h1>
+        <p class="page-sub">Lihat dan hapus foto dari galeri</p>
+        <div class="card">
+          <div class="card-title">Semua Foto</div>
+          <table class="photo-table" id="photoTable">
+            <thead><tr><th></th><th>Judul</th><th>Kategori</th><th>Tanggal</th><th></th></tr></thead>
+            <tbody><tr><td colspan="5" class="table-empty">Memuat...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="page" id="page-messages">
+        <h1 class="page-title">Pesan <em>Masuk</em></h1>
+        <p class="page-sub">Pesan dari pengunjung website</p>
+        <div class="msg-list" id="msgList"><div class="loading-msg">Memuat pesan...</div></div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc,
+             query, orderBy, serverTimestamp, where, getCountFromServer }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+    // =============================================
+    // GANTI DENGAN FIREBASE CONFIG ANDA
+    // =============================================
+   const firebaseConfig = {
+  apiKey: "AIzaSyD39ZxF4lmTpdlP6OaO8M5CwABWXZlmEbM",
+  authDomain: "sdt-photography.firebaseapp.com",
+  projectId: "sdt-photography",
+  storageBucket: "sdt-photography.firebasestorage.app",
+  messagingSenderId: "1005560346457",
+  appId: "1:1005560346457:web:bc6f6af960aa323f8b3e48",
+  measurementId: "G-NYM41SGCW0"
+};
+    // =============================================
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+    const st   = getStorage(app);
+
+    // Auth state
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        document.getElementById('loginScreen').classList.add('hide');
+        document.getElementById('app').classList.add('show');
+        loadDashboard(); loadPhotoTable(); loadMessages();
+      } else {
+        document.getElementById('loginScreen').classList.remove('hide');
+        document.getElementById('app').classList.remove('show');
+      }
+    });
+
+    window.doLogin = async () => {
+      const email = document.getElementById('loginEmail').value;
+      const pass  = document.getElementById('loginPass').value;
+      const err   = document.getElementById('loginError');
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        err.style.display = 'none';
+      } catch(e) {
+        err.style.display = 'block';
+      }
+    };
+
+    window.doLogout = () => signOut(auth);
+
+    // ── Dashboard ──
+    async function loadDashboard() {
+      try {
+        const photoSnap = await getDocs(collection(db, 'photos'));
+        const msgSnap   = await getDocs(collection(db, 'messages'));
+        const unreadQ   = query(collection(db, 'messages'), where('read','==',false));
+        const unreadSnap= await getDocs(unreadQ);
+
+        document.getElementById('statPhotos').textContent   = photoSnap.size;
+        document.getElementById('statMessages').textContent = msgSnap.size;
+        document.getElementById('statUnread').textContent   = unreadSnap.size;
+
+        const badge = document.getElementById('unreadBadge');
+        if (unreadSnap.size > 0) { badge.textContent = unreadSnap.size; badge.style.display='inline'; }
+
+        const tbody = document.querySelector('#recentTable tbody');
+        const photos = [];
+        photoSnap.forEach(d => photos.push({id:d.id,...d.data()}));
+        photos.sort((a,b)=> (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+        tbody.innerHTML = photos.slice(0,5).map(p => `
+          <tr>
+            <td><img class="photo-thumb" src="${p.imageUrl}" /></td>
+            <td>${p.title}</td>
+            <td><span class="cat-badge">${p.category}</span></td>
+            <td>${p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleDateString('id-ID') : '—'}</td>
+          </tr>`).join('') || `<tr><td colspan="4" class="table-empty">Belum ada foto</td></tr>`;
+      } catch(e) { console.error(e); }
+    }
+
+    // ── Photo Table ──
+    async function loadPhotoTable() {
+      const tbody = document.querySelector('#photoTable tbody');
+      tbody.innerHTML = `<tr><td colspan="5" class="table-empty">Memuat...</td></tr>`;
+      try {
+        const snap = await getDocs(query(collection(db,'photos'), orderBy('createdAt','desc')));
+        if (snap.empty) { tbody.innerHTML=`<tr><td colspan="5" class="table-empty">Belum ada foto</td></tr>`; return; }
+        const photos = [];
+        snap.forEach(d => photos.push({id:d.id,...d.data()}));
+        tbody.innerHTML = photos.map(p => `
+          <tr>
+            <td><img class="photo-thumb" src="${p.imageUrl}" /></td>
+            <td>${p.title}</td>
+            <td><span class="cat-badge">${p.category}</span></td>
+            <td>${p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleDateString('id-ID') : '—'}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="deletePhoto('${p.id}','${p.storagePath}')">Hapus</button></td>
+          </tr>`).join('');
+      } catch(e) { tbody.innerHTML=`<tr><td colspan="5" class="table-empty">Gagal memuat</td></tr>`; }
+    }
+
+    // ── Load Messages ──
+    async function loadMessages() {
+      const list = document.getElementById('msgList');
+      list.innerHTML = `<div class="loading-msg">Memuat pesan...</div>`;
+      try {
+        const snap = await getDocs(query(collection(db,'messages'), orderBy('createdAt','desc')));
+        if (snap.empty) { list.innerHTML=`<div class="loading-msg">Belum ada pesan masuk.</div>`; return; }
+        list.innerHTML = '';
+        snap.forEach(d => {
+          const m = d.data();
+          const date = m.createdAt ? new Date(m.createdAt.seconds*1000).toLocaleString('id-ID') : '—';
+          const card = document.createElement('div');
+          card.className = `msg-card${m.read?'':' unread'}`;
+          card.innerHTML = `
+            <div class="msg-header">
+              <div>
+                <div class="msg-sender"><strong>${m.name}</strong></div>
+                <div class="msg-email">${m.email}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:1rem">
+                <span class="msg-date">${date}</span>
+                ${!m.read ? '<span class="unread-dot"></span>' : ''}
+              </div>
+            </div>
+            ${m.subject ? `<div class="msg-subject">${m.subject}</div>` : ''}
+            <div class="msg-body">${m.message}</div>`;
+          card.addEventListener('click', async () => {
+            card.classList.remove('unread');
+            await updateDoc(doc(db,'messages',d.id), {read:true});
+          });
+          list.appendChild(card);
+        });
+      } catch(e) { list.innerHTML=`<div class="loading-msg">Gagal memuat pesan.</div>`; }
+    }
+
+    // ── Upload Photo ──
+    window.previewFile = (input) => {
+      if (!input.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const prev = document.getElementById('dropPreview');
+        prev.src = e.target.result; prev.style.display = 'block';
+      };
+      reader.readAsDataURL(input.files[0]);
+    };
+
+    window.uploadPhoto = async () => {
+      const title = document.getElementById('photoTitle').value.trim();
+      const cat   = document.getElementById('photoCat').value;
+      const desc  = document.getElementById('photoDesc').value.trim();
+      const file  = document.getElementById('fileInput').files[0];
+      const btn   = document.getElementById('uploadBtn');
+      const prog  = document.getElementById('progressBar');
+      const fill  = document.getElementById('progressFill');
+
+      if (!title || !file) { showToast('Judul dan foto wajib diisi!','error'); return; }
+
+      btn.disabled = true; btn.textContent = 'Mengupload...';
+      prog.style.display = 'block';
+
+      const path = `photos/${Date.now()}_${file.name}`;
+      const storageRef = ref(st, path);
+      const task = uploadBytesResumable(storageRef, file);
+
+      task.on('state_changed',
+        snap => { fill.style.width = (snap.bytesTransferred/snap.totalBytes*100)+'%'; },
+        err  => { showToast('Upload gagal: '+err.message,'error'); btn.disabled=false; btn.textContent='Upload Foto ke Galeri'; prog.style.display='none'; },
+        async () => {
+          const url = await getDownloadURL(task.snapshot.ref);
+          await addDoc(collection(db,'photos'), {
+            title, category:cat, description:desc, imageUrl:url,
+            storagePath:path, createdAt:serverTimestamp()
+          });
+          showToast('Foto berhasil diupload!','success');
+          btn.disabled=false; btn.textContent='Upload Foto ke Galeri';
+          prog.style.display='none'; fill.style.width='0';
+          document.getElementById('photoTitle').value='';
+          document.getElementById('photoDesc').value='';
+          document.getElementById('fileInput').value='';
+          document.getElementById('dropPreview').style.display='none';
+          loadDashboard(); loadPhotoTable();
+        }
+      );
+    };
+
+    window.deletePhoto = async (id, path) => {
+      if (!confirm('Hapus foto ini? Tindakan tidak dapat dibatalkan.')) return;
+      try {
+        await deleteDoc(doc(db,'photos',id));
+        if (path) await deleteObject(ref(st, path)).catch(()=>{});
+        showToast('Foto dihapus','success');
+        loadPhotoTable(); loadDashboard();
+      } catch(e) { showToast('Gagal menghapus','error'); }
+    };
+
+    // ── Navigation ──
+    window.showPage = (name) => {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('page-'+name).classList.add('active');
+      event.currentTarget.classList.add('active');
+    };
+
+    // ── Toast ──
+    function showToast(msg, type='success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = `toast ${type} show`;
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>
